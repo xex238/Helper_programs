@@ -1,0 +1,43 @@
+        // Нахождение производной от полинома
+        public static float[] Diff_from_polynom(float[] vector)
+        {
+            float[] result = new float[vector.Length - 1];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = vector[i] * (vector.Length - 1 - i);
+            }
+            return result;
+        }
+        // Вычисление значения от полинома в точке
+        public static float Counting_value(float[] polynom, float x)
+        {
+            float result = 0;
+            for (int i = 0; i < polynom.Length; i++)
+            {
+                result += polynom[i] * (float)Math.Pow(x, i);
+            }
+            Console.WriteLine("В точке {0} значение полинома равно {1}", x, result);
+            return result;
+        }
+        // Реализация метода Ньютона
+        public static float Nyton_method(float[] polynom, float x0)
+        {
+            float e = 0;
+            Console.WriteLine("Введите точность для метода Ньютона");
+            e = float.Parse(Console.ReadLine());
+
+            float x1 = 0;
+            float helper = 0;
+
+            do
+            {
+                x1 = x0 - (Counting_value(polynom, x0) / Counting_value(Diff_from_polynom(polynom), x0));
+                helper = x0;
+                x0 = x1;
+
+                //Console.WriteLine("helper = {0}", helper);
+                //Console.WriteLine("x1 = {0}", x1);
+            } while (Math.Abs(helper - x1) > e);
+
+            return x1;
+        }
