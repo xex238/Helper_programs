@@ -1,0 +1,70 @@
+import cv2 # Подключение opencv
+import os # Множество функций для работы с ОС
+import glob # Позволяет работать с масками файлов или шаблонами
+
+#path_1 = "C:\Users\dima0\OneDrive\Рабочий стол\Учебники\6 семестр\Практика" Нельзя так писать
+
+# variant 1 (test variant)
+path = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика" # Абсолютный путь к папкам с видео
+folders = ["trainset", "validationset"] # Две папки с видео
+for i in folders:
+  path = os.path.join(path, i)
+  os.path.join(path, "*.avi")
+  fileList = glob.glob(os.path.join(path, "*.avi"))
+#  for filename in fileList:
+#    print(filename)
+
+# variant 2
+path_1 = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика/trainset"
+path_2 = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика/validationset"
+fileList_1 = glob.glob(os.path.join(path_1, "*.avi"))
+fileList_2 = glob.glob(os.path.join(path_2, "*.avi"))
+for filename_1 in fileList_1:
+  print(filename_1)
+for filename_2 in fileList_2:
+  print(filename_2)
+    
+# Попытка открыть одно видео
+one_video = fileList_1[0]
+print(one_video)
+
+cap = cv2.VideoCapture(one_video) # Создаём экземпляр класса "видео"
+frame_list = [] # Создаём список с кадрами
+while (cap.isOpened()):
+    ret, frame = cap.read()
+    #print (ret)
+    if (cv2.waitKey(1) & 0xFF == ord('q') or ret == False):
+        break
+    #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # Чёрно-белый кадр
+    color_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # Цветной кадр
+    frame_list.append(color_frame) # Запись кадра в массив
+    #cv2.imshow('frame', color_frame) # Воспроизвести кадр
+
+print(len(frame_list)) # Вывод длины списка кадров
+
+# Вырезание каждого шестого кадра из списка
+new_frame_list = []
+i = 0
+j = 0
+for frame in frame_list:
+    print(i)
+    if (i % 6 == 0):
+        new_frame_list.append(frame_list[i])
+        j = j + 1
+    i = i + 1
+
+print(len(new_frame_list)) # Вывод длины нового списка кадров
+
+# Плохая попытка воспроизвести видео с помощью списка кадров
+#i = 0
+#while (cap.isOpened()):
+#    cv2.imshow('frame', frame_list[i])
+#    i = i + 1
+
+# Тоже плохая попытка воспроизвести видео с помощью списка кадров
+#for frames in frame_list:
+#    cv2.imshow('frame', frames)
+
+cap.release() # Освобождение оперативной памяти, занятой переменной "cap"
+cv2.destroyAllWindows() # Закрытие всех открытых окон
+#print(cv2.__version__) Проверка подключения библиотеки opencv к python
