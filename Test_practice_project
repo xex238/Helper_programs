@@ -2,18 +2,6 @@ import cv2 # Подключение opencv
 import os # Множество функций для работы с ОС
 import glob # Позволяет работать с масками файлов или шаблонами
 
-#path_1 = "C:\Users\dima0\OneDrive\Рабочий стол\Учебники\6 семестр\Практика" Нельзя так писать
-
-# variant 1 (test variant)
-path = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика" # Абсолютный путь к папкам с видео
-folders = ["trainset", "validationset"] # Две папки с видео
-for i in folders:
-  path = os.path.join(path, i)
-  os.path.join(path, "*.avi")
-  fileList = glob.glob(os.path.join(path, "*.avi"))
-#  for filename in fileList:
-#    print(filename)
-
 # variant 2
 path_1 = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика/trainset"
 path_2 = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика/validationset"
@@ -25,8 +13,8 @@ for filename_2 in fileList_2:
   print(filename_2)
     
 # Попытка открыть одно видео
-one_video = fileList_1[0]
-print(one_video)
+one_video = fileList_1[0] # Берём путь к первому видео из списка
+print(one_video) # Выводим путь на экран
 
 cap = cv2.VideoCapture(one_video) # Создаём экземпляр класса "видео"
 frame_list = [] # Создаём список с кадрами
@@ -36,7 +24,8 @@ while (cap.isOpened()):
     if (cv2.waitKey(1) & 0xFF == ord('q') or ret == False):
         break
     #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # Чёрно-белый кадр
-    color_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # Цветной кадр
+    #color_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # Цветной кадр (перестановка цветов в кадре)
+    color_frame = frame
     frame_list.append(color_frame) # Запись кадра в массив
     #cv2.imshow('frame', color_frame) # Воспроизвести кадр
 
@@ -53,18 +42,51 @@ for frame in frame_list:
         j = j + 1
     i = i + 1
 
-print(len(new_frame_list)) # Вывод длины нового списка кадров
+print(len(new_frame_list)) # Вывод в консоль длины нового списка кадров
 
-# Плохая попытка воспроизвести видео с помощью списка кадров
-#i = 0
-#while (cap.isOpened()):
-#    cv2.imshow('frame', frame_list[i])
-#    i = i + 1
+first_frame = new_frame_list[40]
+first_frame = cv2.resize(first_frame, (700, 350))
+cv2.imshow('First frame', first_frame)
 
-# Тоже плохая попытка воспроизвести видео с помощью списка кадров
-#for frames in frame_list:
-#    cv2.imshow('frame', frames)
+# Ожидание нажатия клавиши "q" перед закрытием всех окон
+while(1):
+    if (cv2.waitKey(1) == ord("q")):
+        break
 
-cap.release() # Освобождение оперативной памяти, занятой переменной "cap"
-cv2.destroyAllWindows() # Закрытие всех открытых окон
-#print(cv2.__version__) Проверка подключения библиотеки opencv к python
+
+# Код программы для подбора цветогаммы (я не знаю, как это назвать по-другому :D)
+def nothing(x):
+    pass
+
+cap = first_frame # Один первый кадр
+cv2.namedWindow('result')
+
+cv2.createTrackbar('min_b', 'result', 0, 255, nothing)
+cv2.createTrackbar('min_g', 'result', 0, 255, nothing)
+cv2.createTrackbar('min_r', 'result', 0, 255, nothing)
+
+cv2.createTrackbar('max_b', 'result', 0, 255, nothing)
+cv2.createTrackbar('max_g', 'result', 0, 255, nothing)
+cv2.createTrackbar('max_r', 'result', 0, 255, nothing)
+
+while(True):
+    frame = cap
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    cv2.imshow("hsv", hsv)
+
+    min_b = cv2.getTrackbarPos('min_b', 'result')
+    min_g = cv2.getTrackbarPos('min_g', 'result')
+    min_r = cv2.getTrackbarPos('min_r', 'result')
+
+    max_b = cv2.getTrackbarPos('max_b', 'result')
+    max_g = cv2.getTrackbarPos('max_g', 'result')
+    max_r = cv2.getTrackbarPos('max_r', 'result')
+
+    mask = cv2.inRange(hsv, (min_b, min_g, min_r), (max_b, max_g, max_r))
+    cv2.imshow('mask', mask)
+
+    result = cv2.bitwise_and(frame, frame, mask = mask)
+    cv2.imshow('result', result)
+
+    if (cv2.waitKey(1) == ord("q")):
+        break
