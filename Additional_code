@@ -1,0 +1,36 @@
+# variant 1 (test variant)
+path = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика" # Абсолютный путь к папкам с видео
+folders = ["trainset", "validationset"] # Две папки с видео
+for i in folders:
+  path = os.path.join(path, i)
+  os.path.join(path, "*.avi")
+  fileList = glob.glob(os.path.join(path, "*.avi"))
+#  for filename in fileList:
+#    print(filename)
+
+
+#path_1 = "C:\Users\dima0\OneDrive\Рабочий стол\Учебники\6 семестр\Практика" Нельзя так писать
+
+
+#print(cv2.__version__) Проверка подключения библиотеки opencv к python
+
+
+# Плохой способ вывода на экран первой картинки видео
+#while (not (0xFF == ord('q'))):
+#    cv2.imshow('First frame', new_frame_list[0])
+
+
+# Плохая попытка воспроизвести видео с помощью списка кадров
+#i = 0
+#while (cap.isOpened()):
+#    cv2.imshow('frame', frame_list[i])
+#    i = i + 1
+
+
+# Тоже плохая попытка воспроизвести видео с помощью списка кадров
+#for frames in frame_list:
+#    cv2.imshow('frame', frames)
+
+
+#cap.release() # Освобождение оперативной памяти, занятой переменной "cap"
+#cv2.destroyAllWindows() # Закрытие всех открытых окон
