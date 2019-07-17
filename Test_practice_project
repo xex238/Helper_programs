@@ -13,7 +13,7 @@ for filename_2 in fileList_2:
   print(filename_2)
     
 # Попытка открыть одно видео
-one_video = fileList_1[0] # Берём путь к первому видео из списка
+one_video = fileList_1[2] # Берём путь к первому видео из списка
 print(one_video) # Выводим путь на экран
 
 cap = cv2.VideoCapture(one_video) # Создаём экземпляр класса "видео"
@@ -44,7 +44,7 @@ for frame in frame_list:
 
 print(len(new_frame_list)) # Вывод в консоль длины нового списка кадров
 
-first_frame = new_frame_list[40]
+first_frame = new_frame_list[1]
 first_frame = cv2.resize(first_frame, (700, 350))
 cv2.imshow('First frame', first_frame)
 
@@ -82,10 +82,41 @@ while(True):
     max_g = cv2.getTrackbarPos('max_g', 'result')
     max_r = cv2.getTrackbarPos('max_r', 'result')
 
+    # Размытие матрицы hsv
+    #hsv = cv2.blur(hsv, (5, 5))
+    #cv2.imshow("Blur", hsv)
+
     mask = cv2.inRange(hsv, (min_b, min_g, min_r), (max_b, max_g, max_r))
     cv2.imshow('mask', mask)
 
-    result = cv2.bitwise_and(frame, frame, mask = mask)
+    # Уменьшение ряби
+    mask_Er = cv2.erode(mask, None, iterations = 2)
+    cv2.imshow("Erode", mask_Er)
+
+    mask_Di = cv2.dilate(mask_Er, None, iterations = 4)
+    cv2.imshow("Erode", mask_Er)
+
+    # Функция поиска контуров на изображении
+    contours = cv2.findContours(mask_Di, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    contours = contours[1]
+    #if contours is (not None):
+    #    cv2.drawContours(frame, contours[0], -1, (255, 0, 255), 3)
+    #    cv2.imshow("Contours", frame)
+
+    # Рисуем контур объекта на исходном изображении
+    if contours is (not None):
+        contours = sorted(contours, key = cv2.contourArea, reverse = True)
+        cv2.drawContours(frame, contours[0], -1, (255, 0, 255), 3)
+        cv2.imshow("Contours", frame)
+
+        # Рисуем прямоугольник с искомым объектом на исходном изображении
+        (x, y, w, h) = cv2.boundingRect(contours[0])
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.imshow("Rect", frame)
+        
+
+    #result = cv2.bitwise_and(frame, frame, mask = mask)
+    result = cv2.bitwise_and(frame, frame, mask = mask_Di) # Применяем не исходную маску, а модифицированную
     cv2.imshow('result', result)
 
     if (cv2.waitKey(1) == ord("q")):
