@@ -61,3 +61,220 @@ for i in folders:
 
 #cap.release() # Освобождение оперативной памяти, занятой переменной "cap"
 #cv2.destroyAllWindows() # Закрытие всех открытых окон
+
+
+
+
+
+# Код программы для подбора цветогаммы (я не знаю, как это назвать по-другому :D)
+def nothing(x):
+    pass
+
+cap = first_frame # Один первый кадр
+cv2.namedWindow('result')
+
+cv2.createTrackbar('min_b', 'result', 0, 255, nothing)
+cv2.createTrackbar('min_g', 'result', 0, 255, nothing)
+cv2.createTrackbar('min_r', 'result', 0, 255, nothing)
+
+cv2.createTrackbar('max_b', 'result', 0, 255, nothing)
+cv2.createTrackbar('max_g', 'result', 0, 255, nothing)
+cv2.createTrackbar('max_r', 'result', 0, 255, nothing)
+
+while(True):
+    frame = cap
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    cv2.imshow("hsv", hsv)
+
+    min_b = cv2.getTrackbarPos('min_b', 'result')
+    min_g = cv2.getTrackbarPos('min_g', 'result')
+    min_r = cv2.getTrackbarPos('min_r', 'result')
+
+    max_b = cv2.getTrackbarPos('max_b', 'result')
+    max_g = cv2.getTrackbarPos('max_g', 'result')
+    max_r = cv2.getTrackbarPos('max_r', 'result')
+
+    # Размытие матрицы hsv
+    #hsv = cv2.blur(hsv, (5, 5))
+    #cv2.imshow("Blur", hsv)
+
+    mask = cv2.inRange(hsv, (min_b, min_g, min_r), (max_b, max_g, max_r))
+    cv2.imshow('mask', mask)
+
+    # Уменьшение ряби (по умолчанию None - это матрица 3х3) (было 2 и 4 итерации соответственно)
+    mask_Er = cv2.erode(mask, None, iterations = 2)
+    cv2.imshow("Erode", mask_Er)
+
+    mask_Di = cv2.dilate(mask_Er, None, iterations = 3)
+    cv2.imshow("Dilate", mask_Di)
+
+    # Ищем контуры и складируем их в переменную contours (без исключений)
+    contours, hierarchy = cv2.findContours(mask_Di.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    frame_2 = frame.copy() # Создаём копию исходного кадра
+    # Отображаем контуры поверх изображения
+    cv2.drawContours(frame_2, contours, -1, (255, 0, 0), 2, cv2.LINE_AA, hierarchy, 1)
+    cv2.imshow("Contours", frame_2)
+    print(len(contours)) # Выводится на экран количество найденных контуров
+    # Если количество найденных контуров зелёного цвета равно нулю, то переходим к следующему кадру.
+    # В противном случае смотрим на количество контуров красного цвета на предыдущем кадре.
+    # Если количество контуров красного цвета равно нулю, то переходим к следующему кадру
+
+    #result = cv2.bitwise_and(frame, frame, mask = mask)
+    result = cv2.bitwise_and(frame, frame, mask = mask_Di) # Применяем не исходную маску, а модифицированную
+    cv2.imshow('result', result)
+
+    # Если нажата клавиша "q", то останавливаем цикл while
+    if (cv2.waitKey(1) == ord("q")):
+        break
+
+
+
+
+
+
+
+
+
+
+# Код программы для подбора цветогаммы (обновлённый)
+def nothing(x):
+    pass
+
+cap = first_frame # Один первый кадр
+cv2.namedWindow('result')
+
+cv2.createTrackbar('min_b', 'result', 0, 255, nothing)
+cv2.createTrackbar('min_g', 'result', 0, 255, nothing)
+cv2.createTrackbar('min_r', 'result', 0, 255, nothing)
+
+cv2.createTrackbar('max_b', 'result', 0, 255, nothing)
+cv2.createTrackbar('max_g', 'result', 0, 255, nothing)
+cv2.createTrackbar('max_r', 'result', 0, 255, nothing)
+
+i = 0
+while(True):
+    
+    frame = new_frame_list[i]
+    frame = cv2.resize(frame, (700, 350))
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    cv2.imshow("hsv", hsv)
+
+    min_b = cv2.getTrackbarPos('min_b', 'result')
+    min_g = cv2.getTrackbarPos('min_g', 'result')
+    min_r = cv2.getTrackbarPos('min_r', 'result')
+
+    max_b = cv2.getTrackbarPos('max_b', 'result')
+    max_g = cv2.getTrackbarPos('max_g', 'result')
+    max_r = cv2.getTrackbarPos('max_r', 'result')
+
+    # Размытие матрицы hsv
+    #hsv = cv2.blur(hsv, (5, 5))
+    #cv2.imshow("Blur", hsv)
+
+    mask = cv2.inRange(hsv, (min_b, min_g, min_r), (max_b, max_g, max_r))
+    cv2.imshow('mask', mask)
+
+    # Уменьшение ряби (по умолчанию None - это матрица 3х3) (было 2 и 4 итерации соответственно)
+    mask_Er = cv2.erode(mask, None, iterations = 2)
+    cv2.imshow("Erode", mask_Er)
+
+    mask_Di = cv2.dilate(mask_Er, None, iterations = 3)
+    cv2.imshow("Dilate", mask_Di)
+
+    # Ищем контуры и складируем их в переменную contours (без исключений)
+    contours, hierarchy = cv2.findContours(mask_Di.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    frame_2 = frame.copy() # Создаём копию исходного кадра
+    # Отображаем контуры поверх изображения
+    cv2.drawContours(frame_2, contours, -1, (255, 0, 0), 2, cv2.LINE_AA, hierarchy, 1)
+    cv2.imshow("Contours", frame_2)
+    print(len(contours)) # Выводится на экран количество найденных контуров
+    # Если количество найденных контуров зелёного цвета равно нулю, то переходим к следующему кадру.
+    # В противном случае смотрим на количество контуров красного цвета на предыдущем кадре.
+    # Если количество контуров красного цвета равно нулю, то переходим к следующему кадру
+
+    #result = cv2.bitwise_and(frame, frame, mask = mask)
+    result = cv2.bitwise_and(frame, frame, mask = mask_Di) # Применяем не исходную маску, а модифицированную
+    cv2.imshow('result', result)
+
+    # Если нажата клавиша "q", то останавливаем цикл while
+    if (cv2.waitKey(1) == ord("q")):
+        break
+    if ((cv2.waitKey(1) == ord("w")) and (i > 0)):
+        i = i - 1
+    if ((cv2.waitKey(1) == ord("e")) and (i < len(frame_list) - 1)):
+        i = i + 1
+
+
+
+
+
+
+
+# Поиск переключения светофора
+min_b_red = 0
+min_g_red = 100
+min_r_red = 160
+max_b_red = 20
+max_g_red = 255
+max_r_red = 255
+
+min_b_green = 50
+min_g_green = 150
+min_r_green = 0
+max_b_green = 100
+max_g_green = 255
+max_r_green = 255
+
+i = 0
+for frame_green in new_frame_list:
+
+    frame_green = cv2.resize(frame_green, (700, 350))
+    hsv_green = cv2.cvtColor(frame_green, cv2.COLOR_BGR2HSV)
+
+    mask_green = cv2.inRange(hsv_green, (min_b_green, min_g_green, min_r_green), (max_b_green, max_g_green, max_r_green))
+
+    mask_Er_green = cv2.erode(mask_green, None, iterations = 2)
+    mask_Di_green = cv2.dilate(mask_Er_green, None, iterations = 3)
+    mask_Di_green = cv2.resize(mask_Di_green, (700, 350))
+
+    # Ищем контуры и складируем их в переменную contours (без исключений)
+    contours_green, hierarchy_green = cv2.findContours(mask_Di_green.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    if ((len(contours_green) > 0) and (i > 0)):
+        frame_red = new_frame_list[i - 1]
+        frame_red = cv2.resize(frame_red, (700, 350))
+        
+        hsv_red = cv2.cvtColor(frame_red, cv2.COLOR_BGR2HSV)
+
+        mask_red = cv2.inRange(hsv_red, (min_b_red, min_g_red, min_r_red), (max_b_red, max_g_red, max_r_red))
+
+        mask_Er_red = cv2.erode(mask_red, None, iterations = 2)
+        mask_Di_red = cv2.dilate(mask_Er_red, None, iterations = 3)
+        mask_Di_red = cv2.resize(mask_Di_red, (700, 350))
+
+        contours_red, hierarchy_red = cv2.findContours(mask_Di_red.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        if (len(contours_red) > 0):
+
+            for contours in contours_green:
+                # Рисуем прямоугольник с искомым объектом на исходном изображении
+                (x, y, w, h) = cv2.boundingRect(contours)
+                cv2.rectangle(frame_green, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+            for contours in contours_red:
+                (x, y, w, h) = cv2.boundingRect(contours)
+                cv2.rectangle(frame_red, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+            print("Кадр, на котором произошло переключение равен: ", i * 6)
+            cv2.imshow("Frame_red", frame_red)
+            cv2.imshow("Mask_Di_red", mask_Di_red)
+            print("Количество красных контуров равно ", len(contours_red))
+    cv2.imshow("Frame_green", frame_green)
+    cv2.imshow("Mask_Di_green", mask_Di_green)
+    print("Количество зелёных контуров равно ", len(contours_green))
+    i = i + 1
+
+    # Ожидание нажатия клавиши "q"
+    while(1):
+        if (cv2.waitKey(1) == ord("q")):
+            break
