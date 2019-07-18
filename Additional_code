@@ -32,5 +32,32 @@ for i in folders:
 #    cv2.imshow('frame', frames)
 
 
+    ## Ищем контуры и складируем их в переменную contours (с исключениями)
+    #try:
+    #    _, contours, hierarchy = cv2.findContours(mask_Di.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #except Exception:
+    #    pass
+    #else:    
+    #    # Отображаем контуры поверх изображения
+    #    cv2.drawContours(frame, contours, -1, (255, 0, 0), 3, cv2.LINE_AA, hierarchy, 1)
+    #    cv2.imshow("Contours", frame)
+
+
+    ## Функция поиска контуров на изображении
+    #contours = cv2.findContours(mask_Di, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    #contours = contours[1]
+
+    ## Рисуем контур объекта на исходном изображении
+    #if contours is (not None):
+    #    contours = sorted(contours, key = cv2.contourArea, reverse = True)
+    #    cv2.drawContours(frame, contours[0], -1, (255, 0, 255), 3)
+    #    cv2.imshow("Contours", frame)
+
+    #    # Рисуем прямоугольник с искомым объектом на исходном изображении
+    #    (x, y, w, h) = cv2.boundingRect(contours[0])
+    #    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    #    cv2.imshow("Rect", frame)
+
+
 #cap.release() # Освобождение оперативной памяти, занятой переменной "cap"
 #cv2.destroyAllWindows() # Закрытие всех открытых окон
