@@ -13,7 +13,7 @@ for filename_2 in fileList_2:
   print(filename_2)
     
 # Попытка открыть одно видео
-one_video = fileList_1[1] # Берём путь к первому видео из списка
+one_video = fileList_1[3] # Берём путь к первому видео из списка
 print(one_video) # Выводим путь на экран
 
 cap = cv2.VideoCapture(one_video) # Создаём экземпляр класса "видео"
@@ -54,27 +54,50 @@ while(1):
         break
 
 # Поиск переключения светофора
-min_b_red = 0
-min_g_red = 100
-min_r_red = 160
-max_b_red = 20
-max_g_red = 255
-max_r_red = 255
+# "Начало" кадра в левом верхнем углу
+# Днём красный (днём и ночью примерно одинаковое количество контуров)
+min_b_red_day = 0
+min_g_red_day = 50
+min_r_red_day = 130
+max_b_red_day = 50
+max_g_red_day = 255
+max_r_red_day = 255
 
-min_b_green = 50
-min_g_green = 150
-min_r_green = 0
-max_b_green = 100
-max_g_green = 255
-max_r_green = 255
+# Днём зелёный (ночью много контуров)
+min_b_green_day = 50
+min_g_green_day = 150
+min_r_green_day = 0
+max_b_green_day = 100
+max_g_green_day = 255
+max_r_green_day = 255
+
+# Ночью красный (днём много контуров)
+min_b_red_night = 0
+min_g_red_night = 0
+min_r_red_night = 200
+max_b_red_night = 100
+max_g_red_night = 60
+max_r_red_night = 255
+
+# Ночью зелёный (днём много контуров)
+min_b_green_night = 30
+min_g_green_night = 5
+min_r_green_night = 125
+max_b_green_night = 115
+max_g_green_night = 255
+max_r_green_night = 255
+
+first_frame_hsv = cv2.cvtColor(first_frame, cv2.COLOR_BGR2HSV)
+first_frame_hsv = cv2.resize(first_frame_hsv, (700, 350))
 
 i = 0
+count = 0
 for frame_green in new_frame_list:
 
     frame_green = cv2.resize(frame_green, (700, 350))
     hsv_green = cv2.cvtColor(frame_green, cv2.COLOR_BGR2HSV)
 
-    mask_green = cv2.inRange(hsv_green, (min_b_green, min_g_green, min_r_green), (max_b_green, max_g_green, max_r_green))
+    mask_green = cv2.inRange(hsv_green, (min_b_green_day, min_g_green_day, min_r_green_day), (max_b_green_day, max_g_green_day, max_r_green_day))
 
     mask_Er_green = cv2.erode(mask_green, None, iterations = 2)
     mask_Di_green = cv2.dilate(mask_Er_green, None, iterations = 3)
@@ -88,7 +111,7 @@ for frame_green in new_frame_list:
         
         hsv_red = cv2.cvtColor(frame_red, cv2.COLOR_BGR2HSV)
 
-        mask_red = cv2.inRange(hsv_red, (min_b_red, min_g_red, min_r_red), (max_b_red, max_g_red, max_r_red))
+        mask_red = cv2.inRange(hsv_red, (min_b_red_day, min_g_red_day, min_r_red_day), (max_b_red_day, max_g_red_day, max_r_red_day))
 
         mask_Er_red = cv2.erode(mask_red, None, iterations = 2)
         mask_Di_red = cv2.dilate(mask_Er_red, None, iterations = 3)
@@ -100,16 +123,46 @@ for frame_green in new_frame_list:
             for contours in contours_green:
                 # Рисуем прямоугольник с искомым объектом на исходном изображении
                 (x, y, w, h) = cv2.boundingRect(contours)
+                print("Ордината (х) зелёного контура равна ", x)
+                print("Абсцисса (у) зелёного контура равна ", y)
+                print("Ширина зелёного контура равна ", w)
+                print("Высота зелёного контура равна ", h)
                 cv2.rectangle(frame_green, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
             for contours in contours_red:
                 (x, y, w, h) = cv2.boundingRect(contours)
+                print("Ордината (х) красного контура равна ", x)
+                print("Абсцисса (у) красного контура равна ", y)
+                print("Ширина красного контура равна ", w)
+                print("Высота красного контура равна ", h)
                 cv2.rectangle(frame_red, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            print("Кадр, на котором произошло переключение равен: ", i * 6)
-            cv2.imshow("Frame_red", frame_red)
-            cv2.imshow("Mask_Di_red", mask_Di_red)
-            print("Количество красных контуров равно ", len(contours_red))
+                cv2.imshow("Frame_red", frame_red)
+                cv2.imshow("Mask_Di_red", mask_Di_red)
+                print("Количество красных контуров равно ", len(contours_red))
+
+            for contours_r in contours_red:
+                (x_r, y_r, w_r, h_r) = cv2.boundingRect(contours_r)
+                if ((w_r + 5 > h_r) and (h_r + 5 > w_r)):
+                    # Сдвиг красного сигнала вниз (при вертикальном расположении светофора)
+                    new_x_r_vert = x_r
+                    new_y_r_vert = y_r + 2 * h_r
+                    # Сдвиг красного сигнала влево (при горизонтальном расположении светофора)
+                    new_x_r_gor = x_r - 2 * w_r
+                    new_y_r_gor = y_r
+                    for contours_g in contours_green:
+                        (x_g, y_g, w_g, h_g) = cv2.boundingRect(contours_g)
+                        print("Новая ордината (х) красного контура равна ", new_x_r_vert)
+                        print("Новая абсцисса (у) красного контура равна ", new_y_r_vert)
+                        # Проверка на пересечение цветов
+                        if ((x_g + w_g < new_x_r_vert) or (new_x_r_vert + w_r < x_g) or (y_g + h_g < new_y_r_vert) or (new_y_r_vert + h_r < y_g)):
+                            # Пересечений нет
+                            pass
+                        else:
+                            print("Ура, зафиксировано переключение сигнала светофора!")
+                            count = count + 1
+
+                            print("Кадр, на котором произошло переключение равен: ", i * 6)
     cv2.imshow("Frame_green", frame_green)
     cv2.imshow("Mask_Di_green", mask_Di_green)
     print("Количество зелёных контуров равно ", len(contours_green))
@@ -119,3 +172,4 @@ for frame_green in new_frame_list:
     while(1):
         if (cv2.waitKey(1) == ord("q")):
             break
+print("Количество зафиксированных переключений равно ", count)
