@@ -13,7 +13,7 @@ for filename_2 in fileList_2:
   print(filename_2)
     
 # Попытка открыть одно видео
-one_video = fileList_1[3] # Берём путь к первому видео из списка
+one_video = fileList_1[6] # Берём путь к первому видео из списка
 print(one_video) # Выводим путь на экран
 
 cap = cv2.VideoCapture(one_video) # Создаём экземпляр класса "видео"
@@ -56,48 +56,93 @@ while(1):
 # Поиск переключения светофора
 # "Начало" кадра в левом верхнем углу
 # Днём красный (днём и ночью примерно одинаковое количество контуров)
-min_b_red_day = 0
-min_g_red_day = 50
-min_r_red_day = 130
-max_b_red_day = 50
-max_g_red_day = 255
-max_r_red_day = 255
+min_red_day = (0, 100, 160)
+max_red_day = (20, 255, 255)
+min_red_day_1 = (0, 85, 110)
+max_red_day_1 = (15, 255, 255)
+min_red_day_2 = (165, 85, 110)
+max_red_day_2 = (180, 255, 255)
+min_red_day_3 = (255, 255, 255)
+max_red_day_3 = (0, 0, 0)
 
 # Днём зелёный (ночью много контуров)
-min_b_green_day = 50
-min_g_green_day = 150
-min_r_green_day = 0
-max_b_green_day = 100
-max_g_green_day = 255
-max_r_green_day = 255
+#min_green_day = (50, 150, 0)
+#max_green_day = (100, 255, 255)
+min_green_day = (40, 85, 110) # С сайта
+max_green_day = (91, 255, 255) # С сайта
 
 # Ночью красный (днём много контуров)
-min_b_red_night = 0
-min_g_red_night = 0
-min_r_red_night = 200
-max_b_red_night = 100
-max_g_red_night = 60
-max_r_red_night = 255
+min_red_night = (0, 0, 200)
+max_red_night = (100, 60, 255)
+min_red_night_1 = (0, 85, 110)
+max_red_night_1 = (15, 255, 255)
+min_red_night_2 = (165, 85, 110)
+max_red_night_2 = (180, 255, 255)
+min_red_night_3 = (255, 255, 255)
+max_red_night_3 = (0, 0, 0)
 
 # Ночью зелёный (днём много контуров)
-min_b_green_night = 30
-min_g_green_night = 5
-min_r_green_night = 125
-max_b_green_night = 115
-max_g_green_night = 255
-max_r_green_night = 255
+min_green_night = (30, 5, 125)
+max_green_night = (115, 255, 255)
 
 first_frame_hsv = cv2.cvtColor(first_frame, cv2.COLOR_BGR2HSV)
 first_frame_hsv = cv2.resize(first_frame_hsv, (700, 350))
 
-i = 0
+# Попытка определить яркость первого кадра
+light = [0, 0, 0]
+max_light = [0, 0, 0]
+point_x = 250
+point_y = 0
+cv2.rectangle(first_frame, (point_x, point_y), (point_x + 200, point_y + 100), (0, 255, 0), 2)
+cv2.imshow('First frame', first_frame)
+
+while(point_x < 450):
+    while(point_y < 100):
+        if ((first_frame[point_y, point_x][0] > max_light[0]) and (first_frame[point_y, point_x][1] > max_light[1]) and (first_frame[point_y, point_x][2] > max_light[2])):
+            max_light = first_frame[point_y, point_x]
+        light = light + first_frame[point_y, point_x]
+        point_y = point_y + 1
+    point_y = 0
+    point_x = point_x + 1
+light = light / 20000
+print("light = ", light)
+print("max_light = ", max_light)
+
+min_red_1 = (0, 0, 0)
+min_red_2 = (0, 0, 0)
+min_red_3 = (0, 0, 0)
+max_red_1 = (0, 0, 0)
+max_red_2 = (0, 0, 0)
+max_red_3 = (0, 0, 0)
+min_green = (0, 0, 0)
+max_green = (0, 0, 0)
+if (light[1] > 100):
+    min_red_1 = min_red_day_1
+    min_red_2 = min_red_day_2
+    min_red_3 = min_red_day_3
+    max_red_1 = max_red_day_1
+    max_red_2 = max_red_day_2
+    max_red_3 = max_red_day_3
+    min_green = min_green_day
+    max_green = max_green_day
+else:
+    min_red_1 = min_red_night_1
+    min_red_2 = min_red_night_2
+    min_red_3 = min_red_night_3
+    max_red_1 = max_red_night_1
+    max_red_2 = max_red_night_2
+    max_red_3 = max_red_night_3
+    min_green = min_green_night
+    max_green = max_green_night
+
 count = 0
+i = 0
 for frame_green in new_frame_list:
 
     frame_green = cv2.resize(frame_green, (700, 350))
     hsv_green = cv2.cvtColor(frame_green, cv2.COLOR_BGR2HSV)
 
-    mask_green = cv2.inRange(hsv_green, (min_b_green_day, min_g_green_day, min_r_green_day), (max_b_green_day, max_g_green_day, max_r_green_day))
+    mask_green = cv2.inRange(hsv_green, min_green, max_green)
 
     mask_Er_green = cv2.erode(mask_green, None, iterations = 2)
     mask_Di_green = cv2.dilate(mask_Er_green, None, iterations = 3)
@@ -111,7 +156,10 @@ for frame_green in new_frame_list:
         
         hsv_red = cv2.cvtColor(frame_red, cv2.COLOR_BGR2HSV)
 
-        mask_red = cv2.inRange(hsv_red, (min_b_red_day, min_g_red_day, min_r_red_day), (max_b_red_day, max_g_red_day, max_r_red_day))
+        mask_red_1 = cv2.inRange(hsv_red, min_red_1, max_red_1)
+        mask_red_2 = cv2.inRange(hsv_red, min_red_2, max_red_2)
+        mask_red_3 = cv2.inRange(hsv_red, min_red_3, max_red_3)
+        mask_red = mask_red_1 + mask_red_2 + mask_red_3
 
         mask_Er_red = cv2.erode(mask_red, None, iterations = 2)
         mask_Di_red = cv2.dilate(mask_Er_red, None, iterations = 3)
