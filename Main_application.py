@@ -2,7 +2,8 @@ import cv2 # Подключение opencv
 import os # Множество функций для работы с ОС
 import glob # Позволяет работать с масками файлов или шаблонами
 
-# variant 2
+file = open('results.txt', 'w')
+
 path_1 = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика/trainset"
 path_2 = "C:/Users/dima0/OneDrive/Рабочий стол/Учебники/6 семестр/Практика/validationset"
 fileList_1 = glob.glob(os.path.join(path_1, "*.avi"))
@@ -50,10 +51,10 @@ fileList_2 = glob.glob(os.path.join(path_2, "*.avi"))
 # Поиск переключения светофора
 # "Начало" кадра в левом верхнем углу
 # Днём красный (днём и ночью примерно одинаковое количество контуров)
-min_red_day = (0, 100, 160)
-max_red_day = (20, 255, 255)
+#min_red_day = (0, 100, 160)
+#max_red_day = (20, 255, 255)
 min_red_day_1 = (0, 85, 110)
-max_red_day_1 = (10, 255, 255)
+max_red_day_1 = (20, 255, 255)
 min_red_day_2 = (165, 85, 110)
 max_red_day_2 = (180, 255, 255)
 min_red_day_3 = (255, 255, 255)
@@ -85,6 +86,8 @@ max_green_night = (105, 255, 255)
 
 # Обработка всех видео
 for filename_1 in fileList_1:
+    file.write(os.path.basename(filename_1))
+    file.write(' ')
     print(filename_1)
     cap = cv2.VideoCapture(filename_1) # Создаём экземпляр класса "видео"
     frame_list = [] # Создаём список с кадрами
@@ -186,7 +189,6 @@ for filename_1 in fileList_1:
             mask_red_2 = cv2.inRange(hsv_red, min_red_2, max_red_2)
             mask_red_3 = cv2.inRange(hsv_red, min_red_3, max_red_3)
             mask_red = mask_red_1 + mask_red_2 + mask_red_3
-            mask_red = mask_red_3
 
             mask_Er_red = cv2.erode(mask_red, None, iterations = 2)
             mask_Di_red = cv2.dilate(mask_Er_red, None, iterations = 3)
@@ -250,3 +252,6 @@ for filename_1 in fileList_1:
         #        break
     print("Количество зафиксированных переключений равно ", count)
     print("Кадр, на котором произошло переключение равен ", first_switching)
+    file.write(first_switching)
+    file.write('\n')
+file.close()
